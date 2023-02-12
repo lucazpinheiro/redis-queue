@@ -1,0 +1,19 @@
+{
+    "name": "redis-queue",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "start:dev": "ts-node-dev --transpile-only main.ts"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/node": "^18.11.19",
+        "ts-node-dev": "^2.0.0"
+    },
+    "dependencies": {
+        "redis": "^4.6.4"
+    }
+}

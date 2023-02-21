@@ -2,9 +2,11 @@ import { createClient } from 'redis'
 
 type TimeInSeconds = number
 
-const CACHE_DURATION: TimeInSeconds = 120
+const JOB_KEEP_ALIVE_TIME: TimeInSeconds = 120
 
 const QUEUE_KEY = 'jobs:queue'
+
+const BASE_JOB_KEY = 'job:'
 
 const client = createClient({
   url: 'redis://localhost:6379'
@@ -21,10 +23,24 @@ function getTimestamp(date: string = ''): number {
 }
 
 async function next() {
-  const elem = await client.zRange(QUEUE_KEY, 0, 0)
-  return {
-    job
+  const elem = await client.zPopMin(QUEUE_KEY)
+  if (elem) {
+    return elem.value
   }
+}
+
+async function isJobRunning(key: string) {
+  const job = await client.keys(BASE_JOB_KEY + key)
+  console.log(BASE_JOB_KEY + key)
+  console.log(job)
+}
+
+async function lock(key: string) {
+  await client.set(BASE_JOB_KEY + key, '')
+}
+
+async function removeConcludedJob(key: string) {
+  await client.del(BASE_JOB_KEY + key)
 }
 
 async function main() {
@@ -43,7 +59,11 @@ async function main() {
     value: 'z'
   })
 
-  await next()
+  const elem = await next()
+
+  if (elem) {
+    await lock(elem)
+  }
 
   await client.disconnect()
 }
